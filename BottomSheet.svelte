@@ -1,6 +1,6 @@
-<div bind:this={backdrop} class="backdrop" smooth={!start} {open} on:click={() => open = false}/>
+<div bind:this={backdrop} class="backdrop" smooth={!startY} {open} on:click={() => open = false}/>
 
-<div bind:this={dialog} class="root shadow" {fullscreen} smooth={!start}
+<div bind:this={dialog} class="root shadow" {fullscreen} smooth={!startY}
     on:touchstart={touchStart}
     on:touchmove={touchMove}
     on:touchend={touchEnd}
@@ -11,7 +11,10 @@
 <script>
     let dialog;
     let backdrop;
-    let start;
+
+    let startX;
+    let startY;
+    let direction;
 
     export let fullscreen = false;
     export let open = false;
@@ -21,20 +24,32 @@
 
     const touch = e => e.changedTouches ? e.changedTouches[0] : e;
 
-    const delta = e => start - touch(e).clientY;
+    const deltaX = e => startX - touch(e).clientX;
 
-    const touchStart = e => start = touch(e).clientY;
+    const deltaY = e => startY - touch(e).clientY;
+
+    const touchStart = e => {
+        startX = touch(e).clientX;
+        startY = touch(e).clientY;
+    }
 
     const touchMove = e => {
-        if(delta(e) < 0) {
-            dialog.style.setProperty('--b', delta(e) + 'px');
-            backdrop.style.setProperty('--o', (1 + delta(e) / dialog.clientHeight) * backdropOpacity);
+        if(!direction) {
+            direction = Math.abs(deltaY(e)) > Math.abs(deltaX(e)) ? "vertical" : "horizontal";
+        }
+
+        if(deltaY(e) < 0 && direction === "vertical") {
+            dialog.style.setProperty('--b', deltaY(e) + 'px');
+            backdrop.style.setProperty('--o', (1 + deltaY(e) / dialog.clientHeight) * backdropOpacity);
         }
     }
 
     const touchEnd = e => {
-        open = -delta(e) / dialog.clientHeight < threshold;
-        start = null;
+        if(direction === "vertical") {
+            open = -deltaY(e) / dialog.clientHeight < threshold;
+        }
+        startY = null;
+        direction = null;
     };
 
     $: if(dialog && backdrop) {
@@ -42,7 +57,7 @@
         backdrop.style.setProperty('--s', speed + 's');
     }
 
-    $: if(dialog && backdrop && !start) {
+    $: if(dialog && backdrop && !direction) {
         dialog.style.setProperty('--b', open ? "0px" : -dialog.clientHeight + "px");
         backdrop.style.setProperty('--o', open ? backdropOpacity : 0);
     }
@@ -53,6 +68,7 @@
         position: fixed;
         background-color: #ffffff;
         width: 100vw;
+        overflow-x: auto;
         left: 0px;
         bottom: var(--b, -100%);
         z-index: 7;

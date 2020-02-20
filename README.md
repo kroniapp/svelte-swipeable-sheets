@@ -4,6 +4,8 @@
 npm i -D svelte-swipeable-sheets
 ```
 
+## [Changelog](https://github.com/kroniapp/svelte-swipeable-sheets/blob/master/CHANGELOG.md)
+
 # Example
 
 ## Bottom sheet
