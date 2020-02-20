@@ -1,7 +1,7 @@
 {
   "name": "svelte-swipeable-sheets",
   "description": "Svelte components for Material Design swipeable sheets",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "author": "Kronia",
   "license": "MIT",
