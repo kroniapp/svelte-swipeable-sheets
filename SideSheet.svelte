@@ -1,6 +1,6 @@
-<div bind:this={backdrop} class={"backdrop " + $$props.class} smooth={!startX} {open} on:click={() => open = false}/>
+<div bind:this={backdrop} class={"backdrop " + $$props.class} class:smooth={!startX} class:open on:click={() => open = false}/>
 
-<div bind:this={dialog} class="root shadow" smooth={!startX}
+<div bind:this={dialog} class="root shadow" class:smooth={!startX}
     on:touchstart={touchStart}
     on:touchmove={touchMove}
     on:touchend={touchEnd}
@@ -9,6 +9,8 @@
 </div>
 
 <script>
+    import {touch, deltaX, deltaY} from "./utils";
+
     let dialog;
     let backdrop;
     
@@ -21,12 +23,6 @@
     export let backdropOpacity = 0.5;
     export let speed = 0.2;
 
-    const touch = e => e.changedTouches ? e.changedTouches[0] : e;
-
-    const deltaX = e => startX - touch(e).clientX;
-
-    const deltaY = e => startY - touch(e).clientY;
-
     const touchStart = e => {
         startX = touch(e).clientX;
         startY = touch(e).clientY;
@@ -34,18 +30,18 @@
 
     const touchMove = e => {
         if(!direction) {
-            direction = Math.abs(deltaY(e)) > Math.abs(deltaX(e)) ? "vertical" : "horizontal";
+            direction = Math.abs(deltaY(e, startY)) > Math.abs(deltaX(e, startX)) ? "vertical" : "horizontal";
         }
 
-        if(deltaX(e) < 0 && direction === "horizontal") {
-            dialog.style.setProperty('--b', deltaX(e) + 'px');
-            backdrop.style.setProperty('--o', (1 + deltaX(e) / dialog.clientWidth) * backdropOpacity);
+        if(deltaX(e, startX) < 0 && direction === "horizontal") {
+            dialog.style.setProperty('--b', deltaX(e, startX) + 'px');
+            backdrop.style.setProperty('--o', (1 + deltaX(e, startX) / dialog.clientWidth) * backdropOpacity);
         }
     }
 
     const touchEnd = e => {
         if(direction === "horizontal") {
-            open = -deltaX(e) / dialog.clientWidth < threshold;
+            open = -deltaX(e, startX) / dialog.clientWidth < threshold;
         }
         startX = null;
         direction = null;
@@ -74,7 +70,7 @@
         z-index: 7;
     }
 
-    .root[smooth=true] {
+    .root.smooth {
         transition: right calc(var(--f, 1) * var(--s, 0s)) ease-in-out;
     }
 
@@ -85,16 +81,16 @@
         top: 0px;
         width: 100vw;
         height: 100vh;
-        background-color: #000000;
+        background-color: #212121;
         opacity: var(--o, 0);
         z-index: 6;
     }
 
-    .backdrop[smooth=true] {
+    .backdrop.smooth {
         transition: opacity calc(var(--f, 1) * var(--s, 0s)) ease-in-out;
     }
 
-    .backdrop[open=true] {
+    .backdrop.open {
         pointer-events: all;
     }
 
